@@ -1,5 +1,12 @@
 # dob-sac-cbf
 
+## Environment Setting
+* casadi 
+* cvxopt 
+* gymnasium 
+* torch 
+
+
 ## Some trajectories observed during training
 ### Safe Navigation to (5, 5)
 ![Safe Navigation to (5, 5)](https://github.com/Tafels6/dob-sac-cbf/blob/main/pics/6moving_goal5-5.gif?raw=true)
