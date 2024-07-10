@@ -52,6 +52,14 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
                 np.inf,
             ]
 
+    # safer geometric constraints
+    px_geo, py_geo, v_geo, theta_geo = px, py, v, theta
+    for _ in range(5):
+        px_geo += v_geo*ca.cos(theta_geo + slip_angle) * env.dt  * 1
+        py_geo += v_geo*ca.sin(theta_geo + slip_angle) * env.dt  * 1
+        v_geo += u[0] * env.dt * 1
+        theta_geo += v_geo * ca.sin(slip_angle) * env.dt  * 1
+
     # lane
     if abs(py) >= 4.5:
         hx = 0.5 * (3**2- px**2)
@@ -68,10 +76,11 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
             -px * ca.cos(theta),
             px * v * ca.sin(theta)
         ])
+        phi0 = hx
         alpha1_phi0 = 1 * hx
         lie_f_alpha1_phi0 = hx_dot
         phi1 = hx_dot + alpha1_phi0
-        alpha2_phi1 = 1 * (hx_dot + 1 * hx)**3
+        alpha2_phi1 = 2 * (hx_dot + 1 * hx)**3
 
         constraints += [
             lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0],v*ca.arctan(0.5*ca.tan(u[1])))) + alpha2_phi1 + lie_f_alpha1_phi0 + ca.dot(lie_f_hx_dx, d_hat_tmp)
@@ -81,6 +90,17 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
         ]
         ubg += [
             np.inf,
+        ]
+
+        # geometric
+        constraints += [
+            px_geo
+        ]
+        lbg += [
+            -3,
+        ]
+        ubg += [
+            3,
         ]
 
     if abs(px) >= 4.5:
@@ -100,7 +120,7 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
         ])
 
         lie_f_alpha1_phi0 = hx_dot
-        alpha2_phi1 = 1 * (hx + hx_dot)**3
+        alpha2_phi1 = 2 * (hx + hx_dot)**3
 
         constraints += [
             lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0], v*ca.arctan(0.5*ca.tan(u[1])))) + alpha2_phi1 + lie_f_alpha1_phi0 + ca.dot(lie_f_hx_dx, d_hat_tmp)
@@ -112,38 +132,61 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
             np.inf,
         ]
 
-    combinations = [[1,1],[1,-1],[-1,1],[-1,-1]]
-    for sign_x, sign_y in combinations:
-        lane_arc = np.array([4.5*sign_x, 4.5*sign_y, 1.5])
-
-        x_lane_arc_center, y_lane_arc_center, radius_lane_arc = lane_arc
-        hx = 0.5 * ((px - x_lane_arc_center)**2 + (py - y_lane_arc_center)**2 - radius_lane_arc**2)
-        hx_dot = (px - x_lane_arc_center) * v * np.cos(theta) +  (py - y_lane_arc_center) * v * np.sin(theta)
-        lie_f_hx = (px - x_lane_arc_center) * v * np.cos(theta) +  (py - y_lane_arc_center) * v * np.sin(theta)
-        lie_f_hx_dx = np.array([
-            v * np.cos(theta),
-            v * np.sin(theta)
-            (px - x_lane_arc_center) * np.cos(theta) +  (py - y_lane_arc_center) * np.sin(theta)
-            -(px - x_lane_arc_center) * v * np.sin(theta) +  (py - y_lane_arc_center) * v * np.cos(theta)
-        ])
-        lie_f2_hx = v**2
-        lie_g_lie_f_hx = np.array([
-            (px - x_lane_arc_center) * np.cos(theta) +  (py - y_lane_arc_center) * np.sin(theta),
-            -(px - x_lane_arc_center) * v * np.sin(theta) +  (py - y_lane_arc_center) * v * np.cos(theta)
-        ])
-        lie_f_alpha1_phi0 = lie_f_hx  # alpha1_phi0 = hx
-        alpha1_phi0 = hx
-        alpha2_phi1 = 1 * (hx + hx_dot)**3
-
+        # geometric constraints
         constraints += [
-            lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0], v*ca.arctan(0.5*ca.tan(u[1])))) + lie_f_alpha1_phi0 + alpha2_phi1 + ca.dot(lie_f_hx_dx, d_hat_tmp)
+            py_geo
         ]
         lbg += [
-            0,
+            -3,
         ]
         ubg += [
-            np.inf,
+            3,
         ]
+
+    if abs(px) <= 4.5 and abs(py) <= 4.5:
+        combinations = [[1,1],[1,-1],[-1,1],[-1,-1]]
+        for sign_x, sign_y in combinations:
+            lane_arc = np.array([4.5*sign_x, 4.5*sign_y, 1.5])
+
+            x_lane_arc_center, y_lane_arc_center, radius_lane_arc = lane_arc
+            hx = 0.5 * ((px - x_lane_arc_center)**2 + (py - y_lane_arc_center)**2 - radius_lane_arc**2)
+            hx_dot = (px - x_lane_arc_center) * v * np.cos(theta) +  (py - y_lane_arc_center) * v * np.sin(theta)
+            lie_f_hx = (px - x_lane_arc_center) * v * np.cos(theta) +  (py - y_lane_arc_center) * v * np.sin(theta)
+            lie_f_hx_dx = np.array([
+                v * np.cos(theta),
+                v * np.sin(theta)
+                (px - x_lane_arc_center) * np.cos(theta) +  (py - y_lane_arc_center) * np.sin(theta)
+                -(px - x_lane_arc_center) * v * np.sin(theta) +  (py - y_lane_arc_center) * v * np.cos(theta)
+            ])
+            lie_f2_hx = v**2
+            lie_g_lie_f_hx = np.array([
+                (px - x_lane_arc_center) * np.cos(theta) +  (py - y_lane_arc_center) * np.sin(theta),
+                -(px - x_lane_arc_center) * v * np.sin(theta) +  (py - y_lane_arc_center) * v * np.cos(theta)
+            ])
+            lie_f_alpha1_phi0 = lie_f_hx  # alpha1_phi0 = hx
+            alpha1_phi0 = hx
+            alpha2_phi1 = 2 * (hx + hx_dot)**3
+
+            constraints += [
+                0*lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0], v*ca.arctan(0.5*ca.tan(u[1])))) + lie_f_alpha1_phi0 + alpha2_phi1 + ca.dot(lie_f_hx_dx, d_hat_tmp)
+            ]
+            lbg += [
+                0,
+            ]
+            ubg += [
+                np.inf,
+            ]
+
+            # geometric constraints
+            constraints += [
+                (px_geo-x_lane_arc_center)**2 + (py_geo-y_lane_arc_center)**2 - radius_lane_arc**2
+            ]
+            lbg += [
+                0,
+            ]
+            ubg += [
+                np.inf,
+            ]
 
     P = np.eye(2)
     objective = 0.5 * ca.mtimes([(u - u_rl).T, P, (u - u_rl)])
