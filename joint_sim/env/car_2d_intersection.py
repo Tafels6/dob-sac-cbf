@@ -24,14 +24,14 @@ Car2DIntersection - Intersection scenario
 
      10        |   '   |
                |   '   |
-      3 -------/   '   \-------
+    3.2 -------/   '   \-------
         t
       0 -  -  -    +    -  -  -
 
-     -3 -------\   '   /-------
-           7   |   '   |
+   -3.2 -------\   '   /-------
+               |   '   |
     -10        |   ' s |
-       -10    -3   0   3      10
+       -10   -3.2  0  3.2      10
     
     s: start    [1.5, -10]
     t: target   [-10, 1.5]
@@ -41,7 +41,7 @@ Car2DIntersection - Intersection scenario
 
 '''
 # Lane parameters
-LANE_WIDTH = 3
+LANE_WIDTH = 3.2
 LANE_TURNING_RADIUS = 1.5
 
 class Car2DIntersection(gym.Env):
@@ -96,7 +96,7 @@ class Car2DIntersection(gym.Env):
 
     def check_collision(self):
         for other_car in self.other_cars:
-            if np.linalg.norm(self.current_state[:2] - other_car[:2]) <= 0.4:
+            if np.linalg.norm(self.current_state[:2] - other_car[:2]) <= 1:
                 return True, {'collision_car'}
         px, py = self.current_state[:2]
         if abs(px) >= LANE_WIDTH+LANE_TURNING_RADIUS:
