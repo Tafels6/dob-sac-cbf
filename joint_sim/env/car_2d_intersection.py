@@ -157,10 +157,10 @@ class Car2DIntersection(gym.Env):
             adjustment_term = air_resistance / self.mass + ROLLING_RESISTANCE_COEFFICIENT
             if velocity != 0:
                 adjustment_term *= np.sign(velocity)
-            if friction >= self.mass * acceleration_signal:
+            if friction >= self.mass * abs(acceleration_signal - adjustment_term):
                 acceleration = acceleration_signal - adjustment_term
             else:
-                acceleration = friction / self.mass - adjustment_term
+                acceleration = friction / self.mass *np.sign(acceleration_signal)
         else:
             acceleration = acceleration_signal
         
