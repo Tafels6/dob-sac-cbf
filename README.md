@@ -52,3 +52,6 @@ pip install casadi
 
 ### Intersection with other cars
 ![Trajectory in intersection with other cars](https://github.com/Tafels6/dob-sac-cbf/blob/main/pics/traj_intersection.gif?raw=true)
+
+### Intersection with dense cars
+![Trajectory in intersection with more cars](https://github.com/Tafels6/dob-sac-cbf/blob/main/pics/traj_dense_inter.gif?raw=true)
