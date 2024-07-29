@@ -15,7 +15,7 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
     y' = v * sinθ
     v' = acc
     theta' = omega
-    where: omega = velocity * arctan(0.5 * tan(front_wheel_angle))
+    where: omega = velocity * sin(arctan(0.5 * tan(front_wheel_angle)))
 
          | v * cosθ |   | 0   0 |
     X' = | v * sinθ | + | 0   0 | * |  acc  |
