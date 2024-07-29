@@ -83,7 +83,7 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
         alpha2_phi1 = 2 * (hx_dot + 1 * hx)**3
 
         constraints += [
-            lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0],v*ca.arctan(0.5*ca.tan(u[1])))) + alpha2_phi1 + lie_f_alpha1_phi0 + ca.dot(lie_f_hx_dx, d_hat_tmp)
+            lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0],v*ca.sin(ca.arctan(0.5*ca.tan(u[1]))))) + alpha2_phi1 + lie_f_alpha1_phi0 + ca.dot(lie_f_hx_dx, d_hat_tmp)
         ]
         lbg += [
             0,
@@ -123,7 +123,7 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
         alpha2_phi1 = 2 * (hx + hx_dot)**3
 
         constraints += [
-            lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0], v*ca.arctan(0.5*ca.tan(u[1])))) + alpha2_phi1 + lie_f_alpha1_phi0 + ca.dot(lie_f_hx_dx, d_hat_tmp)
+            lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0], v*ca.sin(ca.arctan(0.5*ca.tan(u[1]))))) + alpha2_phi1 + lie_f_alpha1_phi0 + ca.dot(lie_f_hx_dx, d_hat_tmp)
         ]
         lbg += [
             0,
@@ -168,7 +168,7 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
             alpha2_phi1 = 2 * (hx + hx_dot)**3
 
             constraints += [
-                0*lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0], v*ca.arctan(0.5*ca.tan(u[1])))) + lie_f_alpha1_phi0 + alpha2_phi1 + ca.dot(lie_f_hx_dx, d_hat_tmp)
+                0*lie_f2_hx + ca.dot(lie_g_lie_f_hx, ca.vertcat(u[0], v*ca.sin(ca.arctan(0.5*ca.tan(u[1]))))) + lie_f_alpha1_phi0 + alpha2_phi1 + ca.dot(lie_f_hx_dx, d_hat_tmp)
             ]
             lbg += [
                 0,
