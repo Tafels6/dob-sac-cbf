@@ -14,13 +14,12 @@ def cbf_casadi(env,obs,u_rl,sense_range,d_hat):
     x' = v * cosθ
     y' = v * sinθ
     v' = acc
-    theta' = omega
-    where: omega = velocity * sin(arctan(0.5 * tan(front_wheel_angle)))
+    theta' = velocity * sinβ
 
          | v * cosθ |   | 0   0 |
     X' = | v * sinθ | + | 0   0 | * |  acc  |
-         |    0     |   | 1   0 |   | omega |
-         |    0     |   | 0   1 |
+         |    0     |   | 1   0 |   |  sinβ |
+         |    0     |   | 0   v |
     x' =     f(x)     +     g(x)  *     u
     '''
     for other_car in env.other_cars:
